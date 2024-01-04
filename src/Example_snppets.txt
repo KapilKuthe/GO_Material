@@ -1,13 +1,4 @@
-package main
-
-//function eg1
-// func add(x, y int) int {
-// 	return x + y
-// }
-
-func main() {
-
-	// //variable eg.
+// //variable eg.
 	// var message string
 	// message = "Hello, Go!"
 	// fmt.Println(message)
@@ -36,6 +27,9 @@ func main() {
 	// }
 
 	// //function eg1
+    // func add(x, y int) int {
+    // 	return x + y
+    // }
 	// result := add(3, 4)
 	// fmt.Println(result)
 
@@ -86,5 +80,3 @@ func main() {
 	// for k := range kvs {
 	// 	fmt.Println("key:", k)
 	// }
-
-}
