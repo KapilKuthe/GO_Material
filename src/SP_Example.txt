@@ -55,5 +55,25 @@ func getEmployeeByID(db *sql.DB, employeeID int) (Employee, error) {
 }
 
 func main() {
+	// Initialize the database connection
+	db, err := initDB()
+	if err != nil {
+		log.Fatal("Error initializing database: ", err)
+		return
+	}
+	defer db.Close()
 
+	// Replace with the employee ID you want to retrieve
+	employeeID := 4
+
+	// Call the stored procedure
+	employee, err := getEmployeeByID(db, employeeID)
+	if err != nil {
+		log.Fatal("Error calling stored procedure: ", err)
+		return
+	}
+
+	// Display the retrieved employee information
+	fmt.Printf("Employee ID: %d\nEmployee Name: %s\nDepartment ID: %d\n",
+		employee.EmployeeID, employee.EmployeeName, employee.DepartmentID)
 }
