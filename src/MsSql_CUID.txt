@@ -1,0 +1,133 @@
+package main
+
+import (
+	"database/sql"
+	"fmt"
+	"log"
+
+	_ "github.com/denisenkom/go-mssqldb"
+)
+
+const (
+	server   = "10.112.31.91"
+	port     = 1433
+	user     = "admin"
+	password = "AdM!n@91"
+	database = "test"
+)
+
+var db *sql.DB
+
+func initDB() {
+	var err error
+	connString := fmt.Sprintf("server=%s;user id=%s;password=%s;port=%d;database=%s;",
+		server, user, password, port, database)
+	db, err = sql.Open("sqlserver", connString)
+	if err != nil {
+		log.Fatal("Error creating connection pool: ", err.Error())
+	}
+}
+
+// main.go (continuation)
+
+func main() {
+	initDB()
+	defer db.Close()
+
+	// Test CRUD operations
+	newEmployee := Employees{
+		EmployeeName: "Batool",
+		DepartmentID: 1,
+	}
+
+	err := InsertEmployee(newEmployee)
+	if err != nil {
+		log.Fatal("Error inserting employee: ", err)
+	}
+
+	employees, err := GetEmployees()
+	if err != nil {
+		log.Fatal("Error getting employees: ", err)
+	}
+
+	fmt.Println("Employees:")
+	for _, emp := range employees {
+		fmt.Printf("%d: %s (Department %d)\n", emp.EmployeeID, emp.EmployeeName, emp.DepartmentID)
+	}
+
+	// Update an employee
+	updatedEmployee := Employees{
+		EmployeeID:   1,
+		EmployeeName: "Sam",
+		DepartmentID: 2,
+	}
+
+	err = UpdateEmployee(updatedEmployee)
+	if err != nil {
+		log.Fatal("Error updating employee: ", err)
+	}
+
+	// Delete an employee
+	err = DeleteEmployee(2)
+	if err != nil {
+		log.Fatal("Error deleting employee: ", err)
+	}
+
+	employeesAfter, err := GetEmployees()
+	if err != nil {
+		log.Fatal("Error getting employees: ", err)
+	}
+
+	fmt.Println("Employees:")
+	for _, emp := range employeesAfter {
+		fmt.Print("After Deletion is performed")
+		fmt.Printf("%d: %s (Department %d)\n", emp.EmployeeID, emp.EmployeeName, emp.DepartmentID)
+	}
+}
+
+// Employees represents the Employees table
+type Employees struct {
+	EmployeeID   int
+	EmployeeName string
+	DepartmentID int
+}
+
+// InsertEmployee inserts a new employee
+func InsertEmployee(employee Employees) error {
+	_, err := db.Exec("INSERT INTO Employees (EmployeeName, DepartmentID) VALUES (@p1, @p2)",
+		employee.EmployeeName, employee.DepartmentID)
+	return err
+}
+
+// GetEmployees retrieves all employees
+func GetEmployees() ([]Employees, error) {
+	rows, err := db.Query("SELECT EmployeeID, EmployeeName, DepartmentID FROM Employees")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var employees []Employees
+	for rows.Next() {
+		var emp Employees
+		err := rows.Scan(&emp.EmployeeID, &emp.EmployeeName, &emp.DepartmentID)
+		if err != nil {
+			return nil, err
+		}
+		employees = append(employees, emp)
+	}
+	return employees, nil
+}
+
+// UpdateEmployee updates an existing employee
+func UpdateEmployee(employee Employees) error {
+	_, err := db.Exec("UPDATE Employees SET EmployeeName = @p1, DepartmentID = @p2 WHERE EmployeeID = @p3",
+		employee.EmployeeName, employee.DepartmentID, employee.EmployeeID)
+	return err
+}
+
+// DeleteEmployee deletes an employee by ID
+func DeleteEmployee(employeeID int) error {
+	_, err := db.Exec("DELETE FROM Employees WHERE EmployeeID = @p1", employeeID)
+	return err
+}
