@@ -6,6 +6,7 @@ import (
 	"goLogin/models"
 	"goLogin/security"
 	"goLogin/utility"
+	"time"
 
 	"github.com/kataras/iris/v12"
 )
@@ -65,6 +66,20 @@ func UserLogin(ctx iris.Context) {
 	if err != nil {
 		ctx.StatusCode(iris.StatusInternalServerError)
 		ctx.JSON(iris.Map{"message": "Unable to generate token!", "error": err.Error()})
+		return
+	}
+
+	// var jwtToken models.JwtToken
+	jwtToken := models.JwtToken{
+		UserID:     user.ID,
+		Token:      token,
+		Expiration: time.Now().Add(time.Hour * 12),
+	}
+	//* Store token detail
+	err = database.CreateJwtToken(jwtToken)
+	if err != nil {
+		ctx.StatusCode(iris.StatusInternalServerError)
+		ctx.JSON(iris.Map{"message": "Unable to record Token!", "error": err.Error()})
 		return
 	}
 

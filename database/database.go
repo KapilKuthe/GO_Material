@@ -118,3 +118,13 @@ func GetUser(user models.User) (models.User, error) {
 	}
 	return existingUser, nil
 }
+
+// ? create new customer
+func CreateJwtToken(jtoken models.JwtToken) error {
+	result := db.Create(&jtoken)
+	if result.Error != nil {
+		// fmt.Println(result.Error)
+		return result.Error
+	}
+	return nil
+}
