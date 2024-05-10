@@ -1,19 +1,11 @@
 package msg
 
 import (
-	"errors"
 	"log"
-	"strings"
 	"sync"
-	"time"
 
 	"github.com/gofiber/fiber/v2"
 )
-
-type MsgRequest struct {
-	Timestamp time.Time `json:"time"`
-	Message   string    `json:"message"`
-}
 
 var (
 	requests    []MsgRequest
@@ -28,22 +20,9 @@ func Notemsg(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"success": false, "error": err.Error(), "message": "Invalid request body"})
 	}
 
-	// Validate message not empty
-	if reqBody.Message == "" || strings.TrimSpace(reqBody.Message) == "" {
-		// log.Println("Message is empty")
-		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"success": false, "error": errors.New("message not provided"), "message": "Message cannot be empty"})
-	}
-
-	// Validate timestamp not 0
-	if reqBody.Timestamp.IsZero() {
-		// log.Println("Timestamp is required")
-		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"success": false, "error": errors.New("timeStamp not provided"), "message": "Timestamp is required"})
-	}
-
-	// Check if timestamp is in future
-	if reqBody.Timestamp.Before(time.Now()) {
-		// log.Println("Timestamp is old")
-		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"success": false, "error": errors.New("old timeStamp"), "message": "Timestamp must be in future"})
+	
+	if err :=reqBody.Validate(); err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"success": false, "error": err.Error(), "message": "Timestamp must be in future"})
 	}
 
 	// Save the message
@@ -56,25 +35,35 @@ func Notemsg(ctx *fiber.Ctx) error {
 	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{"success": true})
 }
 
+// func Getmsg(ctx *fiber.Ctx) error {
+	
+// 	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{"data": ctx.JSON()})
+// }
+
 func storemsg(reqBody MsgRequest) error {
 	mutex.Lock()
 	defer mutex.Unlock()
 
 	requests = append(requests, reqBody)
 	activeCount++
-	// Start a goroutine
-	go func() {
-		// Parse timestamp string into a time.Time object
-		timestamp := reqBody.Timestamp
+	// // Start a goroutine
+	// go func() {
+	// 	// Parse timestamp string into a time.Time object
+	// 	timestamp := reqBody.Timestamp
 
-		// Calculate the duration
-		durationUntil := time.Until(timestamp)
-
-		time.Sleep(durationUntil)
-		log.Println("Message:", reqBody.Message)
-		removeMessage(reqBody)
-	}()
+	// 	// Calculate the duration
+	// 	durationUntil := time.Until(timestamp)
+	// 	time.Sleep(durationUntil)
+	// 	log.Println("Message:", reqBody.Message)
+	// 	removeMessage(reqBody)
+	// }()
 		
+	
+	// // Insert MsgRequest into database
+	// if err := db.Create(&reqBody).Error; err != nil {
+	// 	log.Printf("Error inserting MsgRequest: %v\n", err)
+	// 	return fiber.NewError(fiber.StatusInternalServerError, "Error inserting data")
+	// }
 	return nil
 }
 
@@ -91,4 +80,3 @@ func removeMessage(reqBody MsgRequest) {
 	}
 }
 
-//we can add a db if data is needed to be stored but on what basis and why in db and not in redis catche

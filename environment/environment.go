@@ -4,6 +4,7 @@ import (
 	"github.com/joho/godotenv"
 	"os"
 	"log"
+	"fmt"
 )
 
 var(
@@ -16,6 +17,7 @@ var(
 	DBPort string
 	DBSSLMode string
 	DBTimezone string
+	Conn string
 )
 
 func Config(){
@@ -29,6 +31,8 @@ DBName = os.Getenv("DBName")
 DBPort = os.Getenv("DBPort")
 DBSSLMode = os.Getenv("DBSSLMode")
 DBTimezone = os.Getenv("DBTimezone")
+Conn=fmt.Sprintf("host=%v user=%v password=%v dbname=%v port=%v sslmode=%v TimeZone=%v",DBHost, DBUser, DBPassword, DBName, DBPort, DBSSLMode, DBTimezone)
+
 }
 
 
